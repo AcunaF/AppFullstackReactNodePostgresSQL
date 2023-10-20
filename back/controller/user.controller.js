@@ -37,14 +37,17 @@ function authorizeRole(role) {
     }
   };
 }
+router.get("/hola", (req, res) => {
+  res.send("¡Hola, mundo!"); // Respuesta para la ruta "/hola"
+});
 
 // Ruta para el inicio de sesión
-app.post("/login", async (req, res) => {
+/*app.post("/login", async (req, res) => {
   const { correo_electronico, contrasena } = req.body;
   try {
     const user = await db.one(
-      "SELECT * FROM users WHERE correo_electronico = $1",
-      correo_electronico
+      "SELECT * FROM users WHERE correo_electronico = $1 AND contrasena = $2",
+      [correo_electronico, contrasena]
     );
 
     const passwordMatch = await bcrypt.compare(contrasena, user.contrasena);
@@ -58,6 +61,29 @@ app.post("/login", async (req, res) => {
     }
   } catch (error) {
     res.status(401).json({ error: "Credenciales incorrectas" });
+  }
+});*/
+app.post("/login", async (req, res) => {
+  const { correo_electronico, contrasena } = req.body;
+  try {
+    const login = await db.one(
+      "SELECT * FROM login WHERE correo_electronico = $1",
+      correo_electronico
+    );
+
+    const passwordMatch = await bcrypt.compare(contrasena, login.contrasena);
+
+    if (passwordMatch) {
+      // Si las contraseñas coinciden, puedes responder con un mensaje de éxito
+      res.json({ message: "Inicio de sesión exitoso" });
+    } else {
+      // Si las contraseñas no coinciden, respondes con un estado 401 y un mensaje de error
+      res.status(401).json({ error: "Credenciales incorrectas" });
+    }
+  } catch (error) {
+    // Si hay un error en la consulta SQL, respondes con un estado 500 y un mensaje de error
+    console.error("Error en el inicio de sesión:", error);
+    res.status(500).json({ error: "Error en el inicio de sesión" });
   }
 });
 
